@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/animations.css">
@@ -16,7 +15,6 @@
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body data-page="obito">
-    <!-- Loading Screen -->
     <div class="loading-screen" id="loader">
         <div class="loader-content">
             <div class="loader-circle obito-loader"></div>
@@ -24,7 +22,6 @@
         </div>
     </div>
 
-    <!-- Navigation -->
     <nav class="navbar obito-nav" id="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
@@ -46,7 +43,6 @@
         </div>
     </nav>
 
-    <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
         <ul class="mobile-nav-list">
             <li><a href="index.html" class="mobile-nav-link">Home</a></li>
@@ -58,7 +54,6 @@
         </ul>
     </div>
 
-    <!-- Obito 3D Hero -->
     <section class="obito-hero">
         <canvas id="obitoCanvas" class="obito-canvas"></canvas>
         <div class="obito-overlay"></div>
@@ -101,7 +96,6 @@
             </div>
         </div>
 
-        <!-- Controls hint -->
         <div class="obito-controls">
             <div class="control-item">
                 <i class="fas fa-mouse"></i>
@@ -114,7 +108,6 @@
         </div>
     </section>
 
-    <!-- Obito Info Section -->
     <section class="obito-info">
         <div class="container">
             <div class="obito-grid">
@@ -143,7 +136,6 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer obito-footer">
         <div class="container">
             <div class="footer-content">
@@ -184,6 +176,8 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
+    <!-- Three.js MUST load before obito.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="obito.js"></script>
     <script src="script.js"></script>
 </body>
