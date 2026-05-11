@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>✨ Motion Particle Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #000; 
+            overflow: hidden; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            touch-action: none;
+        }
+        canvas { 
+            display: block; 
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; 
+            height: 100vh;
+        }
+        #video { 
+            position: fixed; 
+            bottom: 15px; 
+            right: 15px; 
+            width: 140px; 
+            height: 105px; 
+            border-radius: 16px; 
+            opacity: 0.5;
+            transform: scaleX(-1);
+            border: 2px solid rgba(255,255,255,0.1);
+            z-index: 100;
+            display: none;
+        }
+        
+        /* LOADING SCREEN */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0,212,255,0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 24px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-title {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .loading-status {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 20px;
+            min-height: 20px;
+        }
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .loading-bar-fill {
+            height: 100%;
+            background: #00d4ff;
+            border-radius: 2px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        .start-btn {
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+        .error-box {
+            color: #ff4444;
+            font-size: 13px;
+            text-align: center;
+            max-width: 300px;
+            line-height: 1.6;
+            display: none;
+            padding: 16px;
+            background: rgba(255,68,68,0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255,68,68,0.2);
+        }
+        
+        /* UI */
+        .ui {
+            position: fixed;
+            top: 15px;
+            left:: 15px;
+            color: #fff;
+            z-index: 100;
+            background: rgba(10,10,20,0.8);
+            padding: 16px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            max-width: 300px;
+            font-size: 12px;
+            line-height: 1.7;
+            display: none;
+        }
+        .ui h3 { 
+            color: #00d4ff; 
+            margin-bottom: 10px; 
+            font-size: 16px;
+        }
+        .ui b { color: #fff; }
+        .ui .secret { color: #ff6b9d; }
+        
+        .gesture-box {
+            position: fixed;
+            bottom: 130px;
+            right: 15px;
+            color: #fff;
+            font-size: 13px;
+            background: rgba(10,10,20,0.8);
+            padding: 12px 18px;
+            border-radius: 16px;
+            z-index: 100;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            min-width: 180px;
+            display: none;
+        }
+        .gesture-box .label { color: #888; font-size: 11px; margin-bottom: 4px; }
+        .gesture-box .value { 
+            color: #00d4ff; 
+            font-weight: 700; 
+            font-size: 15px;
+        }
+        .gesture-box .value.secret { color: #ff6b9d; }
+        
+        .fps {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            color: #00ff88;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 100;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOADING SCREEN -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader" id="loader"></div>
+        <div class="loading-title" id="loadingTitle">Motion Particle Pro</div>
+        <div class="loading-status" id="loadingStatus">Mempersiapkan...</div>
+        <div class="loading-bar"><div class="loading-bar-fill" id="loadingBar"></div></div>
+        <button class="start-btn" id="startBtn" onclick="startApp()">🎮 Mulai Kamera</button>
+        <div class="error-box" id="errorBox"></div>
+    </div>
+
+    <!-- UI -->
+    <div class="ui" id="ui">
+        <h3>🎮 Kontrol Gesture</h3>
+        <p>🖐️ <b>Tangan Terbuka</b> → Partikel halus ngikut<br>
+        ✊ <b>Kepal Tangan</b> → Shockwave ledakan<br>
+        ✌️ <b>Peace (V)</b> → Hati stabil & jelas<br>
+        👆 <b>Point</b> → Tulis jejak neon<br>
+        🤙 <b>Shaka</b> → Spiral vortex<br>
+        🤟 <b>Love You</b> → Bintang berkilau<br>
+        ☝️ <b>Kode Rahasia</b> → <span class="secret">"jexkk kerenn jirr"</span></p>
+    </div>
+
+    <div class="gesture-box" id="gestureBox">
+        <div class="label">GESTURE TERDETEKSI</div>
+        <div class="value" id="gestureText">Menunggu...</div>
+    </div>
+
+    <div class="fps" id="fps">60 FPS</div>
+
+    <video id="video" playsinline muted></video>
+    <canvas id="canvas"></canvas>
+
+<script>
+// ==================== SETUP ====================
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+const video = document.getElementById('video');
+const loadingScreen = document.getElementById('loadingScreen');
+const loadingStatus = document.getElementById('loadingStatus');
+const loadingBar = document.getElementById('loadingBar');
+const loader = document.getElementById('loader');
+const startBtn = document.getElementById('startBtn');
+const errorBox = document.getElementById('errorBox');
+const ui = document.getElementById('ui');
+const gestureBox = document.getElementById('gestureBox');
+const gestureText = document.getElementById('gestureText');
+const fpsEl = document.getElementById('fps');
+
+let dpr = Math.min(window.devicePixelRatio || 1, 2);
+let W, H;
+
+function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ==================== LOADING PROGRESS ====================
+function setProgress(pct, text) {
+    loadingBar.style.width = pct + '%';
+    loadingStatus.textContent = text;
+}
+
+// ==================== SCRIPT LOADER ====================
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.crossOrigin = 'anonymous';
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('Gagal load: ' + src));
+        document.head.appendChild(script);
+    });
+}
+
+// Load MediaPipe scripts sequentially
+async function loadMediaPipe() {
+    const scripts = [
+        'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
+        'https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js',
+        'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
+        'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js'
+    ];
+    
+    for (let i = 0; i < scripts.length; i++) {
+        setProgress((i / scripts.length) * 50, `Loading AI... (${i+1}/${scripts.length})`);
+        await loadScript(scripts[i]);
+    }
+    setProgress(50, 'AI siap. Tunggu inisialisasi...');
+}
+
+// ==================== PARTICLE SYSTEM ====================
+class Particle {
+    constructor(x, y, config = {}) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * (config.speed || 2);
+        this.vy = (Math.random() - 0.5) * (config.speed || 2);
+        this.size = config.size || (Math.random() * 2 + 0.5);
+        this.life = 1;
+        this.decay = config.decay || 0.008;
+        this.hue = config.hue !== undefined ? config.hue : Math.random() * 360;
+        this.sat = config.sat || 85;
+        this.light = config.light || 65;
+        this.type = config.type || 'normal';
+        this.trail = [];
+        this.maxTrail = config.trail || 6;
+        this.targetX = null;
+        this.targetY = null;
+        this.targetForce = config.force || 0.04;
+        this.friction = config.friction || 0.95;
+        this.isHeart = false;
+        this.heartT = 0;
+    }
+
+    setTarget(x, y) {
+        this.targetX = x;
+        this.targetY = y;
+    }
+
+    update() {
+        this.trail.push({ x: this.x, y: this.y, life: this.life });
+        if (this.trail.length > this.maxTrail) this.trail.shift();
+
+        if (this.isHeart) {
+            // Heart particles follow heart curve relative to hand
+            const t = this.heartT + Date.now() * 0.0008;
+            const scale = 7;
+            const hx = W/2 + 16 * scale * Math.pow(Math.sin(t), 3);
+            const hy = H/2 - scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+            this.vx += (hx - this.x) * 0.03;
+            this.vy += (hy - this.y) * 0.03;
+            this.vx *= 0.92;
+            this.vy *= 0.92;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life = Math.min(this.life + 0.005, 1);
+            this.hue = 330 + Math.sin(t * 2) * 30;
+        } else {
+            if (this.targetX !== null) {
+                this.vx += (this.targetX - this.x) * this.targetForce;
+                this.vy += (this.targetY - this.y) * this.targetForce;
+            }
+            this.vx *= this.friction;
+            this.vy *= this.friction;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life -= this.decay;
+            this.hue += 0.3;
+        }
+    }
+
+    draw(ctx) {
+        const a = Math.max(0, this.life);
+        
+        // Trail
+        for (let i = 0; i < this.trail.length; i++) {
+            const t = this.trail[i];
+            const ta = (i / this.trail.length) * a * 0.35;
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, this.size * (i/this.trail.length) * 0.5, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${ta})`;
+            ctx.fill();
+        }
+
+        // Core
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * a, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%,}%, ${this.light + 10}%, ${a})`;
+        ctx.fill();
+
+        // Glow
+        const glowSize = this.isHeart ? 6 : 3;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * glowSize * a, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${a * 0.12})`;
+        ctx.fill();
+    }
+}
+
+// ==================== TEXT PARTICLE ====================
+class TextParticle {
+    constructor(x, y, char, hue) {
+        this.x = x + (Math.random() - 0.5) * 100;
+        this.y = y + (Math.random() - 0.5) * 100;
+        this.targetX = x;
+        this.targetY = y;
+        this.char = char;
+        this.hue = hue;
+        this.life = 0;
+        this.size = 0;
+        this.targetSize = 22 + Math.random() * 6;
+        this.vx = 0;
+        this.vy = 0;
+    }
+
+    update() {
+        if (this.life < 1) this.life += 0.04;
+        this.vx += (this.targetX - this.x) * 0.08;
+        this.vy += (this.targetY - this.y) * 0.08;
+        this.vx *= 0.85;
+        this.vy *= 0.85;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.size += (this.targetSize - this.size) * 0.1;
+        this.hue += 0.8;
+    }
+
+    draw(ctx) {
+        const a = Math.min(1, this.life);
+        ctx.save();
+        ctx.font = `bold ${this.size}px sans-serif`;
+        ctx.fillStyle = `hsla(${this.hue}, 95%, 75%, ${a})`;
+        ctx.shadowColor = `hsla(${this.hue}, 95%, 50%, ${a})`;
+        ctx.shadowBlur = 15;
+        ctx.fillText(this.char, this.x, this.y);
+        ctx.restore();
+    }
+}
+
+// ==================== STATE ====================
+let particles = [];
+let textParticles = [];
+let handPos = { x: W/2, y: H/2 };
+let currentGesture = 'none';
+let isHandDetected = false;
+let secretActive = false;
+let secretTimer = 0;
+let hands = null;
+let camera = null;
+
+// ==================== GESTURE DETECTION ====================
+function detectGesture(lm) {
+    // lm = landmarks array [0-20]
+    const wrist = lm[0];
+    
+    // Check if finger is extended (tip higher than pip in screen coords, y increases downward)
+    const indexUp = lm[8].y < lm[6].y;
+    const middleUp = lm[12].y < lm[10].y;
+    const ringUp = lm[16].y < lm[14].y;
+    const pinkyUp = lm[20].y < lm[18].y;
+    
+    // Thumb: check x distance from pinky base
+    const thumbOut = Math.abs(lm[4].x - lm[17].x) > 0.06;
+
+    const count = [indexUp, middleUp, ringUp, pinkyUp].filter(Boolean).(Boolean).length;
+
+    // SECRET: index+middle DOWN, ring+pinky UP
+    if (!indexUp && !middleUp && ringUp && pinkyUp) return 'secret';
+    
+    // PEACE: index+middle UP, ring+pinky DOWN  
+    if (indexUp && middleUp && !ringUp && !pinkyUp) return 'peace';
+    
+    // POINT: only index UP
+    if (indexUp && !middleUp && !ringUp && !pinkyUp) return 'point';
+    
+    // FIST: all down
+    if (count === 0) return 'fist';
+    
+    // SHAKA: thumb+pinky out, others down
+    if (thumbOut && !indexUp && !middleUp && !ringUp && pinkyUp) return 'shaka';
+    
+    // LOVE YOU: index+pinky up, middle+ring down
+    if (indexUp && !middleUp && !ringUp && pinkyUp) return 'loveyou';
+    
+    // ROCK: index+middle+pinky up, ring down
+    if (indexUp && middleUp && !ringUp && pinkyUp) return 'rock';
+    
+    // OPEN: 4 fingers
+    if (count >= 4) return 'open';
+    
+    return 'unknown';
+}
+
+function spawnParticles(x, y, count, cfg) {
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle(
+            x + (Math.random() - 0.5) * (cfg.spread || 30),
+            y + (Math.random() - 0.5) * (cfg.spread || 30),
+            cfg
+        ));
+    }
+}
+
+function spawnHeart(cx, cy) {
+    for (let i = 0; i < 50; i++) {
+        const t = (i / 50) * Math.PI * 2;
+        const p = new Particle(cx, cy, {
+            hue: 330, sat: 90, light: 70, size: 2.5,
+            decay: 0.003, friction: 0.92, trail: 10
+        });
+        p.isHeart = true;
+        p.heartT = t;
+        particles.push(p);
+    }
+}
+
+function spawnText(text, cx, cy) {
+    textParticles = [];
+    const chars = text.split('');
+    const tw = chars.length * 32;
+    chars.forEach((c, i) => {
+        const tp = new TextParticle(cx - tw/2 + i * 32, cy, c, 280 + i * 25);
+        textParticles.push(tp);
+    });
+}
+
+// ==================== UI UPDATE ====================
+function updateUI(g) {
+    const names = {
+        none: '❌ Tidak Terdeteksi',
+        open: '🖐️ Tangan Terbuka',
+        fist: '✊ Kepal Tangan!',
+        peace: '✌️ Peace Sign',
+        point: '👆 Menunjuk',
+        shaka: '🤙 Shaka!',
+        loveyou: '🤟 Love You!',
+        rock: '🤘 Rock!',
+        secret: '🔥 JEXKK KERENN JIRR!',
+        unknown: '🤔...'
+    };
+    gestureText.textContent = names[g] || g;
+    gestureText.className = 'value' + (g === 'secret' ? ' secret' : '');
+}
+
+// ==================== MAIN APP ====================
+async function startApp() {
+    startBtn.style.display = 'none';
+    setProgress(55, 'Mengakses kamera...');
+    
+    try {
+        // Check camera permission
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'user', width: 640, height: 480 } 
+        });
+        stream.getTracks().forEach(t => t.stop());
+        
+        setProgress(70, 'Inisialisasi Hand Tracking...');
+        
+        // Init MediaPipe Hands
+        hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
+        });
+        
+        hands.onResults(onResults);
+        
+        setProgress(85, 'Menyalakan kamera...');
+        
+        // Init camera
+        camera = new Camera(video, {
+            onFrame: async () => {
+                if (hands) await hands.send({ image: video });
+            },
+            width: 640,
+            height: 480
+        });
+        
+        await camera.start();
+        
+        setProgress(100, 'Siap!');
+        setTimeout(() => {
+            loadingScreen.classList.add('hidden');
+            ui.style.display = 'block';
+            gestureBox.style.display = 'block';
+            fpsEl.style.display = 'block';
+            video.style.display = 'block';
+        }, 500);
+        
+    } catch (err) {
+        console.error(err);
+        loader.style.display = 'none';
+        loadingStatus.style.display = 'none';
+        loadingBar.parentElement.style.display = 'none';
+        errorBox.style.display = 'block';
+        
+        let msg = '❌ ';
+        if (err.name === 'NotAllowedError') {
+            msg += 'Kamera di-block! Buka pengaturan browser → izinkan kamera untuk site ini.';
+        } else if (err.name === 'NotFoundError') {
+            msg += 'Kamera tidak ditemukan. Pastikan HP punya kamera depan.';
+        } else {
+            msg += 'Error: ' + err.message;
+        }
+        errorBox.innerHTML = msg + '<br><br><button onclick="location.reload()" style="background:#00d4ff;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;">Coba Lagi</button>';
+    }
+}
+
+function onResults(results) {
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        isHandDetected = true;
+        const lm = results.multiHandLandmarks[0];
+        
+        // Smooth hand position (landmark 9 = middle finger mcp)
+        const rawX = (1 - lm[9].x) * W;
+        const rawY = lm[9].y * H;
+        handPos.x += (rawX - handPos.x) * 0.25;
+        handPos.y += (rawY - handPos.y) * 0.25;
+        
+        const newG = detectGesture(lm);
+        
+        if (newG !== currentGesture) {
+            currentGesture = newG;
+            updateUI(newG);
+            
+            // Trigger effects
+            if (newG === 'peace') {
+                spawnHeart(handPos.x, handPos.y);
+            } else if (newG === 'secret') {
+                secretActive = true;
+                secretTimer = 300;
+                spawnText('jexkk kerenn jirr', W/2, H/2);
+                spawnParticles(W/2, H/2, 80, { hue: 280, speed: 7, spread: 60, decay: 0.012, size: 3, trail: 10 });
+            } else if (newG === 'fist') {
+                spawnParticles(handPos.x, handPos.y, 60, { hue: Math.random()*50, speed: 10, spread: 20, decay: 0.018, size: 3.5 });
+            }
+        }
+        
+        // Continuous spawn
+        const rates = { open: 0.3, point: 0.5, peace: 0.2, fist: 0.6, shaka: 0.4, loveyou: 0.4, rock: 0.5, secret: 0.8 };
+        if (Math.random() < (rates[currentGesture] || 0.2)) {
+            const cfgs = {
+                open: { hue: 180 + Math.random()*60, speed: 1.5, spread: 40 },
+                point: { hue: Date.now()*0.05%360, speed: 2, spread: 15, trail: 8 },
+                peace: { hue: 330 + Math.random()*30, speed: 1, spread: 25, decay: 0.004 },
+                fist: { hue: Math.random()*50, speed: 5, spread: 50, decay: 0.02, size: 3 },
+                shaka: { hue: 200 + Math.random()*40, speed: 3, spread: 40, trail: 10 },
+                loveyou: { hue: 45 + Math.random()*20, speed: 2.5, spread: 30, trail: 8 },
+                rock: { hue: Math.random()*360, speed: 4, spread: 45, decay: 0.01 },
+                secret: { hue: 280 + Math.random()*40, speed: 5, spread: 70, decay: 0.008, size: 2.5 }
+            };
+            spawnParticles(handPos.x, handPos.y, 2, cfgs[currentGesture] || {});
+        }
+        
+    } else {
+        isHandDetected = false;
+        currentGesture = 'none';
+        updateUI('none');
+    }
+}
+
+// ==================== ANIMATION LOOP ====================
+let lastTime = performance.now();
+let frames = 0;
+
+function animate() {
+    const now = performance.now();
+    frames++;
+    if (now - lastTime >= 1000) {
+        fpsEl.textContent = frames + ' FPS';
+        frames = 0;
+        lastTime = now;
+    }
+    
+    // Clear
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.fillRect(0, 0, W, H);
+    
+    // Secret timer
+    if (secretActive) {
+        secretTimer--;
+        if (secretTimer <= 0) {
+            secretActive = false;
+            textParticles = [];
+        }
+    }
+    
+    // Update particles
+    particles = particles.filter(p => {
+        p.update();
+        p.draw(ctx);
+        return p.life > 0;
+    });
+    
+    if (particles.length > 500) particles = particles.slice(-500);
+    
+    // Text particles
+    textParticles.forEach(tp => {
+        tp.update();
+        tp.draw(ctx);
+    });
+    
+    // Connection lines for open hand
+    if (currentGesture === 'open' && particles.length > 20) {
+        ctx.beginPath();
+        ctx.strokeStyle = `hsla(${(now*0.02)%360}, 70%, 60%, 0.05)`;
+        ctx.lineWidth = 0.6;
+        const step = Math.max(1, Math.floor(particles.length / 120));
+        for (let i = 0; i < particles.length; i += step) {
+            for (let j = i + step; j < particles.length; j += step) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                if (dx*dx + dy*dy < 6000) {
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                }
+            }
+        }
+        ctx.stroke();
+    }
+    
+    // Ambient particles
+    if (!isHandDetected && Math.random() < 0.03) {
+        spawnParticles(Math.random()*W, Math.random()*H, 1, { hue: Math.random()*360, speed: 0.3, spread: 0, decay: 0.002, size: 0.8 });
+    }
+    
+    requestAnimationFrame(animate);
+}
+
+// ==================== INIT ====================
+async function init() {
+    setProgress(10, 'Memuat AI Hand Tracking...');
+    
+    try {
+        await loadMediaPipe();
+        setProgress(55, 'Klik tombol di bawah untuk mulai');
+        loader.style.display = 'none';
+        startBtn.style.display = 'block';
+    } catch (err) {
+        loader.style.display = 'none';
+        loadingStatus.style.display = 'none';
+        loadingBar.parentElement.style.display = 'none';
+        errorBox.style.display = 'block';
+        errorBox.textContent = '❌ Gagal load AI. Cek koneksi internet atau coba refresh.';
+    }
+}
+
+init();
+animate();
+</script>
+</body>
+</html>
