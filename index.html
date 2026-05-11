@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Developer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="home">
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loader">
+        <div class="loader-content">
+            <div class="loader-circle"></div>
+            <div class="loader-text">Loading<span class="dots">...</span></div>
+        </div>
+    </div>
+
+    <!-- Page Transition Overlay -->
+    <div class="page-transition" id="pageTransition"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-bracket">&lt;</span>Dev<span class="logo-bracket">/&gt;</span>
+            </a>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link active">Home</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="projects.html" class="nav-link">Projects</a></li>
+                <li><a href="skills.html" class="nav-link">Skills</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li><a href="obito.html" class="nav-link">3D Obito</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-list">
+            <li><a href="index.html" class="mobile-nav-link active">Home</a></li>
+            <li><a href="about.html" class="mobile-nav-link">About</a></li>
+            <li><a href="projects.html" class="mobile-nav-link">Projects</a></li>
+            <li><a href="skills.html" class="mobile-nav-link">Skills</a></li>
+            <li><a href="contact.html" class="mobile-nav-link">Contact</a></li>
+        </ul>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <canvas id="heroCanvas" class="hero-canvas"></canvas>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                Available for freelance
+            </div>
+            <h1 class="hero-title">
+                <span class="title-line">Hello, I'm</span>
+                <span class="title-name">Alex Developer</span>
+            </h1>
+            <p class="hero-subtitle">
+                <span class="typing-text" id="typingText"></span>
+                <span class="typing-cursor">|</span>
+            </p>
+            <p class="hero-description">
+                Crafting digital experiences with clean code and modern design. 
+                Specialized in building scalable web applications with cutting-edge technologies.
+            </p>
+            <div class="hero-buttons">
+                <a href="projects.html" class="btn btn-primary">
+                    <span>View Projects</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="about.html" class="btn btn-secondary">About Me</a>
+                <a href="contact.html" class="btn btn-outline">Contact</a>
+                <a href="#" class="btn btn-glass" onclick="downloadCV()">
+                    <i class="fas fa-download"></i>
+                    <span>Download CV</span>
+                </a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="mouse">
+                <div class="wheel"></div>
+            </div>
+            <span>Scroll to explore</span>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card glass">
+                    <div class="stat-icon"><i class="fas fa-code-branch"></i></div>
+                    <div class="stat-number" data-target="50">0</div>
+                    <div class="stat-label">Projects Completed</div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="stat-number" data-target="15">0</div>
+                    <div class="stat-label">Tech Stack</div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-number" data-target="4">0</div>
+                    <div class="stat-label">Years Experience</div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-icon"><i class="fas fa-smile"></i></div>
+                    <div class="stat-number" data-target="30">0</div>
+                    <div class="stat-label">Happy Clients</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Projects Preview -->
+    <section class="featured-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Portfolio</span>
+                <h2 class="section-title">Featured Projects</h2>
+                <p class="section-desc">Some of my recent work that I'm proud of</p>
+            </div>
+            <div class="featured-grid">
+                <div class="project-card glass">
+                    <div class="project-image">
+                        <div class="project-placeholder">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="#" class="project-link"><i class="fas fa-external-link-alt"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3>E-Commerce Platform</h3>
+                        <p>Full-stack online store with payment integration</p>
+                        <div class="project-tags">
+                            <span>React</span>
+                            <span>Node.js</span>
+                            <span>MongoDB</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card glass">
+                    <div class="project-image">
+                        <div class="project-placeholder">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="#" class="project-link"><i class="fas fa-external-link-alt"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3>AI Dashboard</h3>
+                        <p>Analytics dashboard with machine learning insights</p>
+                        <div class="project-tags">
+                            <span>Next.js</span>
+                            <span>Python</span>
+                            <span>TensorFlow</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card glass">
+                    <div class="project-image">
+                        <div class="project-placeholder">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="#" class="project-link"><i class="fas fa-external-link-alt"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3>Social App</h3>
+                        <p>Real-time social platform with chat features</p>
+                        <div class="project-tags">
+                            <span>React Native</span>
+                            <span>Firebase</span>
+                            <span>Redux</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center">
+                <a href="projects.html" class="btn btn-primary">View All Projects</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card glass">
+                <div class="cta-content">
+                    <h2>Let's Work Together</h2>
+                    <p>Have a project in mind? Let's create something amazing.</p>
+                    <a href="contact.html" class="btn btn-white">Get In Touch</a>
+                </div>
+                <div class="cta-shapes">
+                    <div class="shape shape-1"></div>
+                    <div class="shape shape-2"></div>
+                    <div class="shape shape-3"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="footer-logo">
+                        <span class="logo-bracket">&lt;</span>Dev<span class="logo-bracket">/&gt;</span>
+                    </a>
+                    <p>Building the future, one line of code at a time.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="projects.html">Projects</a></li>
+                        <li><a href="skills.html">Skills</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-social">
+                    <h4>Connect</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p> 2024 Alex Developer. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Floating Action Button -->
+    <a href="contact.html" class="fab-button" id="fabButton">
+        <i class="fas fa-paper-plane"></i>
+    </a>
+
+    <script src="script.js"></script>
+</body>
+</html>
