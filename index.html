@@ -9,7 +9,7 @@
         body { 
             background: #000; 
             overflow: hidden; 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemMacSystemFont, 'Segoe UI', sans-serif;
             touch-action: none;
         }
         canvas { 
@@ -231,6 +231,7 @@ class Particle {
         this.vy = (Math.random() - 0.5) * (cfg.speed || 2);
         this.size = cfg.size || (Math.random() * 2 + 0.5);
         this.life = 1;
+        this.maxLife = 1;
         this.decay = cfg.decay || 0.008;
         this.hue = cfg.hue !== undefined ? cfg.hue : Math.random() * 360;
         this.sat = cfg.sat || 85;
@@ -243,6 +244,12 @@ class Particle {
         this.friction = cfg.friction || 0.95;
         this.isHeart = false;
         this.heartT = 0;
+        this.heartCenterX = 0;
+        this.heartCenterY = 0;
+        this.type = cfg.type || 'normal'; // normal, heart, explosion, text, vortex, star, wave
+        this.age = 0;
+        this.rotation = 0;
+        this.rotSpeed = (Math.random() - 0.5) * 0.1;
     }
 
     setTarget(x, y) {
@@ -251,23 +258,78 @@ class Particle {
     }
 
     update() {
+        this.age++;
         this.trail.push({ x: this.x, y: this.y, life: this.life });
         if (this.trail.length > this.maxTrail) this.trail.shift();
 
         if (this.isHeart) {
-            const t = this.heartT + Date.now() * 0.0008;
-            const scale = 7;
-            const hx = W/2 + 16 * scale * Math.pow(Math.sin(t), 3);
-            const hy = H/2 - scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
-            this.vx += (hx - this.x) * 0.03;
-            this.vy += (hy - this.y) * 0.03;
+            // Heart particles follow heart curve
+            const t = this.heartT + Date.now() * 0.001;
+            const scale = 8;
+            const hx = this.heartCenterX + 16 * scale * Math.pow(Math.sin(t), 3);
+            const hy = this.heartCenterY - scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+            this.vx += (hx - this.x) * 0.04;
+            this.vy += (hy - this.y) * 0.04;
+            this.vx *= 0.9;
+            this.vy *= 0.9;
+            this.x += this.vx;
+            this.y += this.vy;
+            
+            // Heart fades slowly when gesture changes
+            this.life -= 0.003;
+            this.hue = 330 + Math.sin(t * 3) * 40;
+        } 
+        else if (this.type === 'vortex') {
+            // Spiral vortex effect
+            this.rotation += this.rotSpeed * 5;
+            const radius = this.age * 0.5 + 20;
+            const vx = this.heartCenterX + Math.cos(this.rotation) * radius;
+            const vy = this.heartCenterY + Math.sin(this.rotation) * radius;
+            this.vx += (vx - this.x) * 0.05;
+            this.vy += (vy - this.y) * 0.05;
             this.vx *= 0.92;
             this.vy *= 0.92;
             this.x += this.vx;
             this.y += this.vy;
-            this.life = Math.min(this.life + 0.005, 1);
-            this.hue = 330 + Math.sin(t * 2) * 30;
-        } else {
+            this.life -= 0.006;
+            this.hue = (this.hue + 2) % 360;
+        }
+        else if (this.type === 'star') {
+            // Star burst effect
+            this.vx *= 0.96;
+            this.vy *= 0.96;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life -= 0.01;
+            this.size *= 0.99;
+            this.hue += 1;
+        }
+        else if (this.type === 'wave') {
+            // Wave/float effect
+            this.vx += Math.sin(this.age * 0.05) * 0.2;
+            this.vy += Math.cos(this.age * 0.05) * 0.2;
+            this.vx *= 0.95;
+            this.vy *= 0.95;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life -= 0.005;
+            this.hue = (this.hue + 0.5) % 360;
+        }
+        else if (this.type === 'text') {
+            // Text aura particles
+            if (this.targetX !== null) {
+                this.vx += (this.targetX - this.x) * 0.06;
+                this.vy += (this.targetY - this.y) * 0.06;
+            }
+            this.vx *= 0.9;
+            this.vy *= 0.9;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life -= 0.008;
+            this.hue += 1.5;
+        }
+        else {
+            // Normal follow
             if (this.targetX !== null) {
                 this.vx += (this.targetX - this.x) * this.force;
                 this.vy += (this.targetY - this.y) * this.force;
@@ -283,58 +345,105 @@ class Particle {
 
     draw(ctx) {
         const a = Math.max(0, this.life);
+        if (a <= 0) return;
+        
+        // Trail
         for (let i = 0; i < this.trail.length; i++) {
             const t = this.trail[i];
-            const ta = (i / this.trail.length) * a * 0.35;
+            const ta = (i / this.trail.length) * a * 0.4;
+            if (ta <= 0) continue;
             ctx.beginPath();
-            ctx.arc(t.x, t.y, this.size * (i/this.trail.length) * 0.5, 0, Math.PI * 2);
+            ctx.arc(t.x, t.y, this.size * (i/this.trail.length) * 0.6, 0, Math.PI * 2);
             ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${ta})`;
             ctx.fill();
         }
+
+        // Core glow
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size * a, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light + 10}%, ${a})`;
+        ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light + 15}%, ${a})`;
         ctx.fill();
+
+        // Outer glow
+        const glowSize = this.isHeart ? 8 : (this.type === 'vortex' ? 5 : 3);
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * 3 * a, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${a * 0.12})`;
+        ctx.arc(this.x, this.y, this.size * glowSize * a, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${a * 0.15})`;
         ctx.fill();
+        
+        // Extra glow for special types
+        if (this.type === 'text' || this.isHeart) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 12 * a, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${a * 0.05})`;
+            ctx.fill();
+        }
     }
 }
 
+// ==================== TEXT PARTICLE ====================
 class TextParticle {
-    constructor(x, y, char, hue) {
-        this.x = x + (Math.random() - 0.5) * 100;
-        this.y = y + (Math.random() - 0.5) * 100;
+    constructor(x, y, char, hue, delay = 0) {
+        this.x = x + (Math.random() - 0.5) * 150;
+        this.y = y + (Math.random() - 0.5) * 150;
         this.targetX = x;
         this.targetY = y;
         this.char = char;
         this.hue = hue;
         this.life = 0;
+        this.delay = delay;
+        this.delayTimer = 0;
         this.size = 0;
-        this.targetSize = 22 + Math.random() * 6;
+        this.targetSize = 28 + Math.random() * 8;
         this.vx = 0;
         this.vy = 0;
+        this.shake = 0;
+        this.pulse = 0;
     }
+
     update() {
-        if (this.life < 1) this.life += 0.04;
-        this.vx += (this.targetX - this.x) * 0.08;
-        this.vy += (this.targetY - this.y) * 0.08;
-        this.vx *= 0.85;
-        this.vy *= 0.85;
+        if (this.delayTimer < this.delay) {
+            this.delayTimer++;
+            return;
+        }
+        
+        if (this.life < 1) this.life += 0.03;
+        
+        // Smooth approach to target
+        this.vx += (this.targetX - this.x) * 0.06;
+        this.vy += (this.targetY - this.y) * 0.06;
+        this.vx *= 0.88;
+        this.vy *= 0.88;
         this.x += this.vx;
         this.y += this.vy;
-        this.size += (this.targetSize - this.size) * 0.1;
-        this.hue += 0.8;
+        
+        this.size += (this.targetSize - this.size) * 0.08;
+        this.shake = Math.sin(Date.now() * 0.008 + this.x) * 1.5;
+        this.pulse = Math.sin(Date.now() * 0.003 + this.hue) * 0.1 + 1;
+        this.hue += 0.6;
     }
+
     draw(ctx) {
+        if (this.delayTimer < this.delay) return;
+        
         const a = Math.min(1, this.life);
+        const pulseSize = this.size * this.pulse;
+        
         ctx.save();
-        ctx.font = `bold ${this.size}px sans-serif`;
-        ctx.fillStyle = `hsla(${this.hue}, 95%, 75%, ${a})`;
-        ctx.shadowColor = `hsla(${this.hue}, 95%, 50%, ${a})`;
-        ctx.shadowBlur = 15;
-        ctx.fillText(this.char, this.x, this.y);
+        ctx.font = `bold ${pulseSize}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Multiple glow layers
+        ctx.shadowColor = `hsla(${this.hue}, 100%, 50%, ${a * 0.8})`;
+        ctx.shadowBlur = 25;
+        ctx.fillStyle = `hsla(${this.hue}, 95%, 80%, ${a})`;
+        ctx.fillText(this.char, this.x + this.shake, this.y);
+        
+        ctx.shadowBlur = 50;
+        ctx.fillStyle = `hsla(${this.hue}, 100%, 60%, ${a * 0.5})`;
+        ctx.fillText(this.char, this.x + this.shake, this.y);
+        
         ctx.restore();
     }
 }
@@ -344,15 +453,18 @@ let particles = [];
 let textParticles = [];
 let handPos = { x: W/2, y: H/2 };
 let currentGesture = 'none';
+let prevGesture = 'none';
 let isHandDetected = false;
 let secretActive = false;
 let secretTimer = 0;
-let mode = 'loading'; // loading, camera, touch
+let mode = 'loading';
+let gestureHoldTime = 0;
 
-// ==================== TOUCH/MOUSE FALLBACK ====================
+// ==================== TOUCH/MOUSE ====================
 let touchPos = { x: W/2, y: H/2 };
 let isTouching = false;
 let touchGesture = 'open';
+let lastTap = 0;
 
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
@@ -360,6 +472,13 @@ canvas.addEventListener('touchstart', e => {
     const t = e.touches[0];
     touchPos.x = t.clientX;
     touchPos.y = t.clientY;
+    
+    // Two finger = peace/heart
+    if (e.touches.length === 2) {
+        touchGesture = 'peace';
+        spawnHeart(touchPos.x, touchPos.y);
+        updateUI('peace');
+    }
 }, {passive: false});
 
 canvas.addEventListener('touchmove', e => {
@@ -372,6 +491,17 @@ canvas.addEventListener('touchmove', e => {
 canvas.addEventListener('touchend', e => {
     e.preventDefault();
     isTouching = false;
+    touchGesture = 'open';
+    
+    // Double tap = fist/explosion
+    const now = Date.now();
+    if (now - lastTap < 300) {
+        touchGesture = 'fist';
+        spawnExplosion(touchPos.x, touchPos.y);
+        updateUI('fist');
+        setTimeout(() => { touchGesture = 'open'; updateUI('touch'); }, 600);
+    }
+    lastTap = now;
 });
 
 canvas.addEventListener('mousedown', e => {
@@ -380,24 +510,9 @@ canvas.addEventListener('mousedown', e => {
     touchPos.y = e.clientY;
 });
 canvas.addEventListener('mousemove', e => {
-    if (isTouching) {
-        touchPos.x = e.clientX;
-        touchPos.y = e.clientY;
-    }
+    if (isTouching) { touchPos.x = e.clientX; touchPos.y = e.clientY; }
 });
-canvas.addEventListener('mouseup', () => isTouching = false);
-
-// Double tap for fist effect
-let lastTap = 0;
-canvas.addEventListener('touchend', e => {
-    const now = Date.now();
-    if (now - lastTap < 300) {
-        touchGesture = 'fist';
-        spawnParticles(touchPos.x, touchPos.y, 60, { hue: Math.random()*50, speed: 10, spread: 20, decay: 0.018, size: 3.5 });
-        setTimeout(() => touchGesture = 'open', 500);
-    }
-    lastTap = now;
-});
+canvas.addEventListener('mouseup', () => { isTouching = false; });
 
 // ==================== SPAWN FUNCTIONS ====================
 function spawnParticles(x, y, count, cfg) {
@@ -411,38 +526,130 @@ function spawnParticles(x, y, count, cfg) {
 }
 
 function spawnHeart(cx, cy) {
-    for (let i = 0; i < 50; i++) {
-        const t = (i / 50) * Math.PI * 2;
-        const p = new Particle(cx, cy, { hue: 330, sat: 90, light: 70, size: 2.5, decay: 0.003, friction: 0.92, trail: 10 });
+    // Clear old heart particles
+    particles = particles.filter(p => !p.isHeart);
+    
+    for (let i = 0; i < 60; i++) {
+        const t = (i / 60) * Math.PI * 2;
+        const p = new Particle(cx, cy, { 
+            hue: 330, sat: 95, light: 75, size: 3, 
+            decay: 0.002, friction: 0.93, trail: 12,
+            type: 'heart'
+        });
         p.isHeart = true;
         p.heartT = t;
+        p.heartCenterX = cx;
+        p.heartCenterY = cy;
         particles.push(p);
     }
 }
 
-function spawnText(text, cx, cy) {
+function spawnExplosion(x, y) {
+    spawnParticles(x, y, 80, { 
+        hue: Math.random() * 60, speed: 12, spread: 10, 
+        decay: 0.02, size: 4, friction: 0.9, trail: 6,
+        type: 'star'
+    });
+}
+
+function spawnVortex(x, y) {
+    for (let i = 0; i < 40; i++) {
+        const p = new Particle(x, y, {
+            hue: 200 + Math.random() * 60, speed: 3, spread: 5,
+            decay: 0.005, friction: 0.92, trail: 10,
+            type: 'vortex'
+        });
+        p.heartCenterX = x;
+        p.heartCenterY = y;
+        p.rotSpeed = (Math.random() > 0.5 ? 1 : -1) * (0.05 + Math.random() * 0.05);
+        particles.push(p);
+    }
+}
+
+function spawnWave(x, y) {
+    spawnParticles(x, y, 30, {
+        hue: 160 + Math.random() * 40, speed: 2, spread: 50,
+        decay: 0.004, friction: 0.94, trail: 8,
+        type: 'wave'
+    });
+}
+
+function spawnTextEffect(text, cx, cy) {
     textParticles = [];
     const chars = text.split('');
-    const tw = chars.length * 32;
+    const tw = chars.length * 36;
+    
+    // Spawn aura particles around text
+    for (let i = 0; i < 50; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 80 + Math.random() * 60;
+        const px = cx + Math.cos(angle) * radius;
+        const py = cy + Math.sin(angle) * radius;
+        const p = new Particle(px, py, {
+            hue: 280 + Math.random() * 60, speed: 1, spread: 0,
+            decay: 0.006, friction: 0.9, trail: 8,
+            type: 'text'
+        });
+        p.targetX = cx + (Math.random() - 0.5) * tw;
+        p.targetY = cy + (Math.random() - 0.5) * 40;
+        particles.push(p);
+    }
+    
+    // Text characters
     chars.forEach((c, i) => {
-        const tp = new TextParticle(cx - tw/2 + i * 32, cy, c, 280 + i * 25);
+        const tp = new TextParticle(
+            cx - tw/2 + i * 36, 
+            cy, 
+            c, 
+            280 + i * 25,
+            i * 5 // stagger delay
+        );
         textParticles.push(tp);
     });
 }
 
 // ==================== GESTURE DETECTION ====================
 function detectGesture(lm) {
-    const indexUp = lm[8].y < lm[6].y;
-    const middleUp = lm[12].y < lm[10].y;
-    const ringUp = lm[16].y < lm[14].y;
-    const pinkyUp = lm[20].y < lm[18].y;
+    const wrist = lm[0];
+    const indexTip = lm[8], indexPip = lm[6];
+    const middleTip = lm[12], middlePip = lm[10];
+    const ringTip = lm[16], ringPip = lm[14];
+    const pinkyTip = lm[20], pinkyPip = lm[18];
+    const thumbTip = lm[4], thumbIp = lm[3];
+
+    // Finger up = tip above pip (y decreases upward)
+    const indexUp = indexTip.y < indexPip.y;
+    const middleUp = middleTip.y < middlePip.y;
+    const ringUp = ringTip.y < ringPip.y;
+    const pinkyUp = pinkyTip.y < pinkyPip.y;
+    const thumbUp = thumbTip.x < thumbIp.x; // Thumb check based on x for right hand
+
     const count = [indexUp, middleUp, ringUp, pinkyUp].filter(Boolean).length;
 
+    // SECRET CODE: Index + Middle DOWN, Ring + Pinky UP
     if (!indexUp && !middleUp && ringUp && pinkyUp) return 'secret';
+    
+    // PEACE: Index + Middle UP, Ring + Pinky DOWN
     if (indexUp && middleUp && !ringUp && !pinkyUp) return 'peace';
+    
+    // POINT: Only Index UP
     if (indexUp && !middleUp && !ringUp && !pinkyUp) return 'point';
+    
+    // FIST: All down
     if (count === 0) return 'fist';
+    
+    // SHAKA: Thumb + Pinky up, others down
+    if (thumbUp && !indexUp && !middleUp && !ringUp && pinkyUp) return 'shaka';
+    
+    // LOVE YOU: Index + Pinky up, Middle + Ring down
+    if (indexUp && !middleUp && !ringUp && pinkyUp) return 'loveyou';
+    
+    // ROCK: Index + Middle + Pinky up, Ring down
+    if (indexUp && middleUp && !ringUp && pinkyUp) return 'rock';
+    
+    // OPEN: 4 fingers up
     if (count >= 4) return 'open';
+    
     return 'unknown';
 }
 
@@ -450,14 +657,15 @@ function updateUI(g) {
     const names = {
         none: '❌ Tidak Terdeteksi', open: '🖐️ Tangan Terbuka',
         fist: '✊ Kepal!', peace: '✌️ Peace', point: '👆 Menunjuk',
+        shaka: '🤙 Shaka!', loveyou: '🤟 Love You!', rock: '🤘 Rock!',
         secret: '🔥 JEXKK KERENN!', unknown: '🤔...',
-        touch: '👆 Touch Mode', fist_touch: '💥 Tap 2x!'
+        touch: '👆 Touch Mode'
     };
     gestureText.textContent = names[g] || g;
     gestureText.className = 'value' + (g === 'secret' ? ' secret' : '');
 }
 
-// ==================== CAMERA MODE ====================
+// ==================== CAMERA ====================
 async function startCamera() {
     setProgress(60, 'Mengakses kamera...');
     try {
@@ -468,50 +676,39 @@ async function startCamera() {
         
         setProgress(75, 'Load AI...');
         
-        // Try multiple CDN sources
-        const cdnSources = [
-            'https://cdn.jsdelivr.net/npm/@mediapipe',
-            'https://unpkg.com/@mediapipe',
-            'https://cdn.statically.io/gh/google/mediapipe/master'
+        // Load scripts
+        const scripts = [
+            'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
+            'https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js',
+            'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
+            'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js'
         ];
         
-        let loaded = false;
-        for (const base of cdnSources) {
-            try {
-                await loadScript(`${base}/camera_utils/camera_utils.js`);
-                await loadScript(`${base}/control_utils/control_utils.js`);
-                await loadScript(`${base}/drawing_utils/drawing_utils.js`);
-                await loadScript(`${base}/hands/hands.js`);
-                loaded = true;
-                console.log('Loaded from:', base);
-                break;
-            } catch(e) {
-                console.log('Failed:', base, e.message);
-                continue;
-            }
+        for (const src of scripts) {
+            await new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.crossOrigin = 'anonymous';
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            });
         }
-        
-        if (!loaded) throw new Error('Semua CDN gagal');
         
         setProgress(90, 'Init AI...');
         
         const hands = new Hands({
-            locateFile: (file) => {
-                // Try to find the file from loaded source
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-            }
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
         });
         
         hands.setOptions({
             maxNumHands: 1,
-            modelComplexity: 0, // Lite mode for faster load
+            modelComplexity: 0,
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
         });
         
         hands.onResults(onHandResults);
-        
-        setProgress(100, 'Siap!');
         
         const camera = new Camera(video, {
             onFrame: async () => { await hands.send({ image: video }); },
@@ -528,61 +725,94 @@ async function startCamera() {
         finishLoad();
         
     } catch (err) {
-        console.error('Camera error:', err);
-        showError('Kamera gagal: ' + err.message + '\n\nBeralih ke mode Touch...', true);
+        console.error(err);
+        showError('Kamera gagal. Beralih ke Touch Mode...', true);
     }
-}
-
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = src;
-        s.crossOrigin = 'anonymous';
-        s.onload = resolve;
-        s.onerror = () => reject(new Error('fail'));
-        document.head.appendChild(s);
-    });
 }
 
 function onHandResults(results) {
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         isHandDetected = true;
         const lm = results.multiHandLandmarks[0];
+        
+        // Smooth hand tracking
         const rawX = (1 - lm[9].x) * W;
         const rawY = lm[9].y * H;
-        handPos.x += (rawX - handPos.x) * 0.25;
-        handPos.y += (rawY - handPos.y) * 0.25;
+        handPos.x += (rawX - handPos.x) * 0.3;
+        handPos.y += (rawY - handPos.y) * 0.3;
         
         const newG = detectGesture(lm);
-        if (newG !== currentGesture) {
+        
+        // Track gesture hold time
+        if (newG === currentGesture) {
+            gestureHoldTime++;
+        } else {
+            gestureHoldTime = 0;
+            prevGesture = currentGesture;
             currentGesture = newG;
             updateUI(newG);
-            if (newG === 'peace') spawnHeart(handPos.x, handPos.y);
-            else if (newG === 'secret') {
-                secretActive = true;
-                secretTimer = 300;
-                spawnText('jexkk kerenn jirr', W/2, H/2);
-                spawnParticles(W/2, H/2, 80, { hue: 280, speed: 7, spread: 60, decay: 0.012, size: 3, trail: 10 });
-            } else if (newG === 'fist') {
-                spawnParticles(handPos.x, handPos.y, 60, { hue: Math.random()*50, speed: 10, spread: 20, decay: 0.018, size: 3.5 });
-            }
+            
+            // Trigger on gesture change
+            handleGestureChange(newG, handPos.x, handPos.y);
         }
         
-        const rates = { open: 0.3, point: 0.5, peace: 0.2, fist: 0.6, secret: 0.8 };
-        if (Math.random() < (rates[currentGesture] || 0.2)) {
-            const cfgs = {
-                open: { hue: 180+Math.random()*60, speed: 1.5, spread: 40 },
-                point: { hue: Date.now()*0.05%360, speed: 2, spread: 15, trail: 8 },
-                peace: { hue: 330+Math.random()*30, speed: 1, spread: 25, decay: 0.004 },
-                fist: { hue: Math.random()*50, speed: 5, spread: 50, decay: 0.02, size: 3 },
-                secret: { hue: 280+Math.random()*40, speed: 5, spread: 70, decay: 0.008, size: 2.5 }
-            };
-            spawnParticles(handPos.x, handPos.y, 2, cfgs[currentGesture] || {});
-        }
+        // Continuous effects
+        handleGestureContinuous(newG, handPos.x, handPos.y);
+        
     } else {
         isHandDetected = false;
-        currentGesture = 'none';
-        updateUI('none');
+        if (currentGesture !== 'none') {
+            currentGesture = 'none';
+            updateUI('none');
+        }
+    }
+}
+
+function handleGestureChange(g, x, y) {
+    switch(g) {
+        case 'peace':
+            spawnHeart(x, y);
+            break;
+        case 'secret':
+            secretActive = true;
+            secretTimer = 400;
+            spawnTextEffect('jexkk kerenn jirr', W/2, H/2);
+            spawnExplosion(W/2, H/2);
+            break;
+        case 'fist':
+            spawnExplosion(x, y);
+            break;
+        case 'shaka':
+            spawnVortex(x, y);
+            break;
+        case 'loveyou':
+            spawnWave(x, y);
+            break;
+        case 'rock':
+            spawnParticles(x, y, 60, { 
+                hue: Math.random()*360, speed: 8, spread: 30, 
+                decay: 0.015, size: 3, type: 'star' 
+            });
+            break;
+    }
+}
+
+function handleGestureContinuous(g, x, y) {
+    const rates = { open: 0.4, point: 0.6, peace: 0.15, fist: 0.5, 
+                   shaka: 0.3, loveyou: 0.3, rock: 0.4, secret: 0.9 };
+    
+    if (Math.random() < (rates[g] || 0.2)) {
+        const cfgs = {
+            open: { hue: 180+Math.random()*60, speed: 1.5, spread: 40, trail: 6 },
+            point: { hue: Date.now()*0.05%360, speed: 2, spread: 15, trail: 10 },
+            peace: { hue: 330+Math.random()*30, speed: 0.8, spread: 20, decay: 0.003 },
+            fist: { hue: Math.random()*50, speed: 4, spread: 40, decay: 0.018, size: 3 },
+            shaka: { hue: 200+Math.random()*60, speed: 2, spread: 35, trail: 8, type: 'wave' },
+            loveyou: { hue: 45+Math.random()*20, speed: 2, spread: 30, trail: 8 },
+            rock: { hue: Math.random()*360, speed: 3, spread: 40, decay: 0.012 },
+            secret: { hue: 280+Math.random()*60, speed: 4, spread: 60, decay: 0.008, size: 2.5008, size: 2.5 }
+        };
+        spawnParticles(x, y, 2, cfgs[g] || {});
     }
 }
 
@@ -599,16 +829,6 @@ function startTouchMode() {
     modeInd.style.color = '#ff6b9d';
     modeInd.style.borderColor = 'rgba(255,107,157,0.2)';
     modeInd.style.background = 'rgba(255,107,157,0.1)';
-    
-    // Two finger detection
-    canvas.addEventListener('touchstart', e => {
-        if (e.touches.length === 2) {
-            touchGesture = 'peace';
-            spawnHeart(touchPos.x, touchPos.y);
-            updateUI('peace');
-        }
-    }, {passive: false});
-    
     finishLoad();
 }
 
@@ -636,12 +856,20 @@ function showError(msg, showFallback) {
 
 // ==================== MAIN LOOP ====================
 function animate() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
     ctx.fillRect(0, 0, W, H);
     
+    // Secret timer
     if (secretActive) {
         secretTimer--;
-        if (secretTimer <= 0) { secretActive = false; textParticles = []; }
+        if (secretTimer <= 0) {
+            secretActive = false;
+            textParticles = [];
+            // Fade out remaining text aura particles
+            particles.forEach(p => {
+                if (p.type === 'text') p.life -= 0.02;
+            });
+        }
     }
     
     // Determine active position
@@ -652,44 +880,48 @@ function animate() {
     } else if (mode === 'touch' && isTouching) {
         activePos = touchPos;
         activeGesture = touchGesture;
-        // Spawn on touch
-        if (Math.random() < 0.4) {
-            const cfg = touchGesture === 'fist' 
-                ? { hue: Math.random()*50, speed: 6, spread: 40, decay: 0.015, size: 3 }
-                : { hue: 180+Math.random()*60, speed: 1.5, spread: 30, trail: 6 };
-            spawnParticles(touchPos.x, touchPos.y, 2, cfg);
-        }
     } else {
         activePos = null;
         activeGesture = 'none';
     }
     
-    // Update particles
+    // Update particles - hearts fade when gesture changes
     particles = particles.filter(p => {
-        if (!p.isHeart && activePos) {
+        // If gesture changed from peace, make hearts fade faster
+        if (p.isHeart && activeGesture !== 'peace') {
+            p.life -= 0.015;
+        }
+        
+        if (!p.isHeart && p.type !== 'text' && activePos) {
             p.setTarget(activePos.x, activePos.y);
         }
+        
         p.update();
         p.draw(ctx);
         return p.life > 0;
     });
     
-    if (particles.length > 500) particles = particles.slice(-500);
+    // Limit particles
+    if (particles.length > 600) particles = particles.slice(-600);
     
     // Text particles
-    textParticles.forEach(tp => { tp.update(); tp.draw(ctx); });
+    textParticles = textParticles.filter(tp => {
+        tp.update();
+        tp.draw(ctx);
+        return tp.life < 1 || tp.delayTimer < tp.delay;
+    });
     
-    // Connection lines
+    // Connection lines for open hand
     if (activeGesture === 'open' && particles.length > 20) {
         ctx.beginPath();
-        ctx.strokeStyle = `hsla(${(Date.now()*0.02)%360}, 70%, 60%, 0.05)`;
-        ctx.lineWidth = 0.6;
-        const step = Math.max(1, Math.floor(particles.length / 120));
+        ctx.strokeStyle = `hsla(${(Date.now()*0.02)%360}, 70%, 60%, 0.06)`;
+        ctx.lineWidth = 0.8;
+        const step = Math.max(1, Math.floor(particles.length / 100));
         for (let i = 0; i < particles.length; i += step) {
             for (let j = i + step; j < particles.length; j += step) {
                 const dx = particles[i].x - particles[j].x;
                 const dy = particles[i].y - particles[j].y;
-                if (dx*dx + dy*dy < 6000) {
+                if (dx*dx + dy*dy < 8000) {
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
                 }
@@ -698,9 +930,12 @@ function animate() {
         ctx.stroke();
     }
     
-    // Ambient
-    if (!activePos && Math.random() < 0.03) {
-        spawnParticles(Math.random()*W, Math.random()*H, 1, { hue: Math.random()*360, speed: 0.3, spread: 0, decay: 0.002, size: 0.8 });
+    // Ambient particles when idle
+    if (!activePos && Math.random() < 0.04) {
+        spawnParticles(Math.random()*W, Math.random()*H, 1, { 
+            hue: Math.random()*360, speed: 0.3, spread: 0, 
+            decay: 0.002, size: 0.8 
+        });
     }
     
     requestAnimationFrame(animate);
@@ -709,30 +944,15 @@ function animate() {
 // ==================== INIT ====================
 startBtn.addEventListener('click', startCamera);
 
-// Auto-detect if we can load scripts
 (async function init() {
     setProgress(20, 'Cek koneksi...');
-    
-    // Check if online
     if (!navigator.onLine) {
-        showError('❌ Offline!\n\nNyalain internet dulu, atau pakai mode Touch.', true);
+        showError('❌ Offline!\nNyalain internet atau pakai Touch Mode.', true);
         return;
     }
-    
-    setProgress(40, 'Siap memuat AI...');
-    
-    // Test if we can reach CDN
-    try {
-        await fetch('https://cdn.jsdelivr.net/npm/@mediapipe/hands/package.json', { mode: 'no-cors', cache: 'no-store' });
-        setProgress(55, 'Klik tombol untuk mulai');
-        loader.style.display = 'none';
-        startBtn.style.display = 'block';
-    } catch(e) {
-        setProgress(55, 'CDN lambat, tapi coba klik mulai...');
-        loader.style.display = 'none';
-        startBtn.style.display = 'block';
-        startBtn.textContent = '🎮 Coba Mulai (CDN Lambat)';
-    }
+    setProgress(55, 'Klik tombol untuk mulai');
+    loader.style.display = 'none';
+    startBtn.style.display = 'block';
 })();
 
 animate();
