@@ -31,9 +31,9 @@
             border: 2px solid rgba(255,255,255,0.1);
             z-index: 100;
             display: none;
+            object-fit: cover;
         }
         
-        /* LOADING SCREEN */
         .loading-screen {
             position: fixed;
             inset: 0;
@@ -45,10 +45,7 @@
             z-index: 1000;
             transition: opacity 0.5s;
         }
-        .loading-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        .loading-screen.hidden { opacity: 0; pointer-events: none; }
         .loader {
             width: 60px;
             height: 60px;
@@ -59,69 +56,55 @@
             margin-bottom: 24px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-title {
-            color: #fff;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        .loading-status {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 20px;
-            min-height: 20px;
-        }
-        .loading-bar {
-            width: 200px;
-            height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .loading-bar-fill {
-            height: 100%;
-            background: #00d4ff;
-            border-radius: 2px;
-            transition: width 0.3s;
-            width: 0%;
-        }
+        .loading-title { color: #fff; font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+        .loading-status { color: #888; font-size: 14px; margin-bottom: 20px; min-height: 20px; text-align: center; padding: 0 20px; }
+        .loading-bar { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 20px; }
+        .loading-bar-fill { height: 100%; background: #00d4ff; border-radius: 2px; transition: width 0.3s; width: 0%; }
         .start-btn {
             background: #00d4ff;
             color: #000;
             border: none;
-            padding: 14px 32px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 16px 36px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
             cursor: pointer;
             display: none;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 0 30px rgba(0,212,255,0.3);
         }
-        .start-btn:active {
-            transform: scale(0.95);
-        }
+        .start-btn:active { transform: scale(0.95); }
         .error-box {
             color: #ff4444;
             font-size: 13px;
             text-align: center;
-            max-width: 300px;
-            line-height: 1.6;
+            max-width: 320px;
+            line-height: 1.7;
             display: none;
-            padding: 16px;
-            background: rgba(255,68,68,0.1);
-            border-radius: 12px;
+            padding: 20px;
+            background: rgba(255,68,68,0.08);
+            border-radius: 16px;
             border: 1px solid rgba(255,68,68,0.2);
         }
+        .fallback-btn {
+            background: #ff6b9d;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
         
-        /* UI */
         .ui {
             position: fixed;
             top: 15px;
-            left:: 15px;
+            left: 15px;
             color: #fff;
             z-index: 100;
-            background: rgba(10,10,20,0.8);
+            background: rgba(10,10,20,0.85);
             padding: 16px 20px;
             border-radius: 20px;
             backdrop-filter: blur(20px);
@@ -131,11 +114,7 @@
             line-height: 1.7;
             display: none;
         }
-        .ui h3 { 
-            color: #00d4ff; 
-            margin-bottom: 10px; 
-            font-size: 16px;
-        }
+        .ui h3 { color: #00d4ff; margin-bottom: 10px; font-size: 16px; }
         .ui b { color: #fff; }
         .ui .secret { color: #ff6b9d; }
         
@@ -145,7 +124,7 @@
             right: 15px;
             color: #fff;
             font-size: 13px;
-            background: rgba(10,10,20,0.8);
+            background: rgba(10,10,20,0.85);
             padding: 12px 18px;
             border-radius: 16px;
             z-index: 100;
@@ -155,58 +134,55 @@
             display: none;
         }
         .gesture-box .label { color: #888; font-size: 11px; margin-bottom: 4px; }
-        .gesture-box .value { 
-            color: #00d4ff; 
-            font-weight: 700; 
-            font-size: 15px;
-        }
+        .gesture-box .value { color: #00d4ff; font-weight: 700; font-size: 15px; }
         .gesture-box .value.secret { color: #ff6b9d; }
         
-        .fps {
+        .mode-indicator {
             position: fixed;
             top: 15px;
             right: 15px;
             color: #00ff88;
             font-size: 12px;
-            font-family: monospace;
+            font-weight: 600;
             z-index: 100;
+            background: rgba(0,255,136,0.1);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,255,136,0.2);
             display: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- LOADING SCREEN -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loader" id="loader"></div>
-        <div class="loading-title" id="loadingTitle">Motion Particle Pro</div>
-        <div class="loading-status" id="loadingStatus">Mempersiapkan...</div>
-        <div class="loading-bar"><div class="loading-bar-fill" id="loadingBar"></div></div>
-        <button class="start-btn" id="startBtn" onclick="startApp()">🎮 Mulai Kamera</button>
-        <div class="error-box" id="errorBox"></div>
-    </div>
+<div class="loading-screen" id="loadingScreen">
+    <div class="loader" id="loader"></div>
+    <div class="loading-title">Motion Particle Pro</div>
+    <div class="loading-status" id="loadingStatus">Mempersiapkan...</div>
+    <div class="loading-bar"><div class="loading-bar-fill" id="loadingBar"></div></div>
+    <button class="start-btn" id="startBtn">🎮 Mulai Kamera</button>
+    <div class="error-box" id="errorBox"></div>
+</div>
 
-    <!-- UI -->
-    <div class="ui" id="ui">
-        <h3>🎮 Kontrol Gesture</h3>
-        <p>🖐️ <b>Tangan Terbuka</b> → Partikel halus ngikut<br>
-        ✊ <b>Kepal Tangan</b> → Shockwave ledakan<br>
-        ✌️ <b>Peace (V)</b> → Hati stabil & jelas<br>
-        👆 <b>Point</b> → Tulis jejak neon<br>
-        🤙 <b>Shaka</b> → Spiral vortex<br>
-        🤟 <b>Love You</b> → Bintang berkilau<br>
-        ☝️ <b>Kode Rahasia</b> → <span class="secret">"jexkk kerenn jirr"</span></p>
-    </div>
+<div class="ui" id="ui">
+    <h3>🎮 Kontrol</h3>
+    <p id="controlText">
+    🖐️ <b>Tangan Terbuka</b> → Partikel halus<br>
+    ✊ <b>Kepal</b> → Ledakan<br>
+    ✌️ <b>Peace</b> → Hati<br>
+    👆 <b>Point</b> → Jejak neon<br>
+    ☝️ <b>Kode</b> → <span class="secret">"jexkk kerenn jirr"</span></p>
+</div>
 
-    <div class="gesture-box" id="gestureBox">
-        <div class="label">GESTURE TERDETEKSI</div>
-        <div class="value" id="gestureText">Menunggu...</div>
-    </div>
+<div class="gesture-box" id="gestureBox">
+    <div class="label">STATUS</div>
+    <div class="value" id="gestureText">Menunggu...</div>
+</div>
 
-    <div class="fps" id="fps">60 FPS</div>
+<div class="mode-indicator" id="modeInd">📷 MODE KAMERA</div>
 
-    <video id="video" playsinline muted></video>
-    <canvas id="canvas"></canvas>
+<video id="video" playsinline muted></video>
+<canvas id="canvas"></canvas>
 
 <script>
 // ==================== SETUP ====================
@@ -222,7 +198,8 @@ const errorBox = document.getElementById('errorBox');
 const ui = document.getElementById('ui');
 const gestureBox = document.getElementById('gestureBox');
 const gestureText = document.getElementById('gestureText');
-const fpsEl = document.getElementById('fps');
+const modeInd = document.getElementById('modeInd');
+const controlText = document.getElementById('controlText');
 
 let dpr = Math.min(window.devicePixelRatio || 1, 2);
 let W, H;
@@ -240,60 +217,30 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ==================== LOADING PROGRESS ====================
 function setProgress(pct, text) {
     loadingBar.style.width = pct + '%';
     loadingStatus.textContent = text;
 }
 
-// ==================== SCRIPT LOADER ====================
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.crossOrigin = 'anonymous';
-        script.onload = resolve;
-        script.onerror = () => reject(new Error('Gagal load: ' + src));
-        document.head.appendChild(script);
-    });
-}
-
-// Load MediaPipe scripts sequentially
-async function loadMediaPipe() {
-    const scripts = [
-        'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
-        'https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js',
-        'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
-        'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js'
-    ];
-    
-    for (let i = 0; i < scripts.length; i++) {
-        setProgress((i / scripts.length) * 50, `Loading AI... (${i+1}/${scripts.length})`);
-        await loadScript(scripts[i]);
-    }
-    setProgress(50, 'AI siap. Tunggu inisialisasi...');
-}
-
 // ==================== PARTICLE SYSTEM ====================
 class Particle {
-    constructor(x, y, config = {}) {
+    constructor(x, y, cfg = {}) {
         this.x = x;
         this.y = y;
-        this.vx = (Math.random() - 0.5) * (config.speed || 2);
-        this.vy = (Math.random() - 0.5) * (config.speed || 2);
-        this.size = config.size || (Math.random() * 2 + 0.5);
+        this.vx = (Math.random() - 0.5) * (cfg.speed || 2);
+        this.vy = (Math.random() - 0.5) * (cfg.speed || 2);
+        this.size = cfg.size || (Math.random() * 2 + 0.5);
         this.life = 1;
-        this.decay = config.decay || 0.008;
-        this.hue = config.hue !== undefined ? config.hue : Math.random() * 360;
-        this.sat = config.sat || 85;
-        this.light = config.light || 65;
-        this.type = config.type || 'normal';
+        this.decay = cfg.decay || 0.008;
+        this.hue = cfg.hue !== undefined ? cfg.hue : Math.random() * 360;
+        this.sat = cfg.sat || 85;
+        this.light = cfg.light || 65;
         this.trail = [];
-        this.maxTrail = config.trail || 6;
+        this.maxTrail = cfg.trail || 6;
         this.targetX = null;
         this.targetY = null;
-        this.targetForce = config.force || 0.04;
-        this.friction = config.friction || 0.95;
+        this.force = cfg.force || 0.04;
+        this.friction = cfg.friction || 0.95;
         this.isHeart = false;
         this.heartT = 0;
     }
@@ -308,7 +255,6 @@ class Particle {
         if (this.trail.length > this.maxTrail) this.trail.shift();
 
         if (this.isHeart) {
-            // Heart particles follow heart curve relative to hand
             const t = this.heartT + Date.now() * 0.0008;
             const scale = 7;
             const hx = W/2 + 16 * scale * Math.pow(Math.sin(t), 3);
@@ -323,8 +269,8 @@ class Particle {
             this.hue = 330 + Math.sin(t * 2) * 30;
         } else {
             if (this.targetX !== null) {
-                this.vx += (this.targetX - this.x) * this.targetForce;
-                this.vy += (this.targetY - this.y) * this.targetForce;
+                this.vx += (this.targetX - this.x) * this.force;
+                this.vy += (this.targetY - this.y) * this.force;
             }
             this.vx *= this.friction;
             this.vy *= this.friction;
@@ -337,8 +283,6 @@ class Particle {
 
     draw(ctx) {
         const a = Math.max(0, this.life);
-        
-        // Trail
         for (let i = 0; i < this.trail.length; i++) {
             const t = this.trail[i];
             const ta = (i / this.trail.length) * a * 0.35;
@@ -347,23 +291,17 @@ class Particle {
             ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${ta})`;
             ctx.fill();
         }
-
-        // Core
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size * a, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%,}%, ${this.light + 10}%, ${a})`;
+        ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light + 10}%, ${a})`;
         ctx.fill();
-
-        // Glow
-        const glowSize = this.isHeart ? 6 : 3;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * glowSize * a, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.size * 3 * a, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, ${this.light}%, ${a * 0.12})`;
         ctx.fill();
     }
 }
 
-// ==================== TEXT PARTICLE ====================
 class TextParticle {
     constructor(x, y, char, hue) {
         this.x = x + (Math.random() - 0.5) * 100;
@@ -378,7 +316,6 @@ class TextParticle {
         this.vx = 0;
         this.vy = 0;
     }
-
     update() {
         if (this.life < 1) this.life += 0.04;
         this.vx += (this.targetX - this.x) * 0.08;
@@ -390,7 +327,6 @@ class TextParticle {
         this.size += (this.targetSize - this.size) * 0.1;
         this.hue += 0.8;
     }
-
     draw(ctx) {
         const a = Math.min(1, this.life);
         ctx.save();
@@ -411,52 +347,59 @@ let currentGesture = 'none';
 let isHandDetected = false;
 let secretActive = false;
 let secretTimer = 0;
-let hands = null;
-let camera = null;
+let mode = 'loading'; // loading, camera, touch
 
-// ==================== GESTURE DETECTION ====================
-function detectGesture(lm) {
-    // lm = landmarks array [0-20]
-    const wrist = lm[0];
-    
-    // Check if finger is extended (tip higher than pip in screen coords, y increases downward)
-    const indexUp = lm[8].y < lm[6].y;
-    const middleUp = lm[12].y < lm[10].y;
-    const ringUp = lm[16].y < lm[14].y;
-    const pinkyUp = lm[20].y < lm[18].y;
-    
-    // Thumb: check x distance from pinky base
-    const thumbOut = Math.abs(lm[4].x - lm[17].x) > 0.06;
+// ==================== TOUCH/MOUSE FALLBACK ====================
+let touchPos = { x: W/2, y: H/2 };
+let isTouching = false;
+let touchGesture = 'open';
 
-    const count = [indexUp, middleUp, ringUp, pinkyUp].filter(Boolean).(Boolean).length;
+canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    isTouching = true;
+    const t = e.touches[0];
+    touchPos.x = t.clientX;
+    touchPos.y = t.clientY;
+}, {passive: false});
 
-    // SECRET: index+middle DOWN, ring+pinky UP
-    if (!indexUp && !middleUp && ringUp && pinkyUp) return 'secret';
-    
-    // PEACE: index+middle UP, ring+pinky DOWN  
-    if (indexUp && middleUp && !ringUp && !pinkyUp) return 'peace';
-    
-    // POINT: only index UP
-    if (indexUp && !middleUp && !ringUp && !pinkyUp) return 'point';
-    
-    // FIST: all down
-    if (count === 0) return 'fist';
-    
-    // SHAKA: thumb+pinky out, others down
-    if (thumbOut && !indexUp && !middleUp && !ringUp && pinkyUp) return 'shaka';
-    
-    // LOVE YOU: index+pinky up, middle+ring down
-    if (indexUp && !middleUp && !ringUp && pinkyUp) return 'loveyou';
-    
-    // ROCK: index+middle+pinky up, ring down
-    if (indexUp && middleUp && !ringUp && pinkyUp) return 'rock';
-    
-    // OPEN: 4 fingers
-    if (count >= 4) return 'open';
-    
-    return 'unknown';
-}
+canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    touchPos.x = t.clientX;
+    touchPos.y = t.clientY;
+}, {passive: false});
 
+canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    isTouching = false;
+});
+
+canvas.addEventListener('mousedown', e => {
+    isTouching = true;
+    touchPos.x = e.clientX;
+    touchPos.y = e.clientY;
+});
+canvas.addEventListener('mousemove', e => {
+    if (isTouching) {
+        touchPos.x = e.clientX;
+        touchPos.y = e.clientY;
+    }
+});
+canvas.addEventListener('mouseup', () => isTouching = false);
+
+// Double tap for fist effect
+let lastTap = 0;
+canvas.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+        touchGesture = 'fist';
+        spawnParticles(touchPos.x, touchPos.y, 60, { hue: Math.random()*50, speed: 10, spread: 20, decay: 0.018, size: 3.5 });
+        setTimeout(() => touchGesture = 'open', 500);
+    }
+    lastTap = now;
+});
+
+// ==================== SPAWN FUNCTIONS ====================
 function spawnParticles(x, y, count, cfg) {
     for (let i = 0; i < count; i++) {
         particles.push(new Particle(
@@ -470,10 +413,7 @@ function spawnParticles(x, y, count, cfg) {
 function spawnHeart(cx, cy) {
     for (let i = 0; i < 50; i++) {
         const t = (i / 50) * Math.PI * 2;
-        const p = new Particle(cx, cy, {
-            hue: 330, sat: 90, light: 70, size: 2.5,
-            decay: 0.003, friction: 0.92, trail: 10
-        });
+        const p = new Particle(cx, cy, { hue: 330, sat: 90, light: 70, size: 2.5, decay: 0.003, friction: 0.92, trail: 10 });
         p.isHeart = true;
         p.heartT = t;
         particles.push(p);
@@ -490,114 +430,135 @@ function spawnText(text, cx, cy) {
     });
 }
 
-// ==================== UI UPDATE ====================
+// ==================== GESTURE DETECTION ====================
+function detectGesture(lm) {
+    const indexUp = lm[8].y < lm[6].y;
+    const middleUp = lm[12].y < lm[10].y;
+    const ringUp = lm[16].y < lm[14].y;
+    const pinkyUp = lm[20].y < lm[18].y;
+    const count = [indexUp, middleUp, ringUp, pinkyUp].filter(Boolean).length;
+
+    if (!indexUp && !middleUp && ringUp && pinkyUp) return 'secret';
+    if (indexUp && middleUp && !ringUp && !pinkyUp) return 'peace';
+    if (indexUp && !middleUp && !ringUp && !pinkyUp) return 'point';
+    if (count === 0) return 'fist';
+    if (count >= 4) return 'open';
+    return 'unknown';
+}
+
 function updateUI(g) {
     const names = {
-        none: '❌ Tidak Terdeteksi',
-        open: '🖐️ Tangan Terbuka',
-        fist: '✊ Kepal Tangan!',
-        peace: '✌️ Peace Sign',
-        point: '👆 Menunjuk',
-        shaka: '🤙 Shaka!',
-        loveyou: '🤟 Love You!',
-        rock: '🤘 Rock!',
-        secret: '🔥 JEXKK KERENN JIRR!',
-        unknown: '🤔...'
+        none: '❌ Tidak Terdeteksi', open: '🖐️ Tangan Terbuka',
+        fist: '✊ Kepal!', peace: '✌️ Peace', point: '👆 Menunjuk',
+        secret: '🔥 JEXKK KERENN!', unknown: '🤔...',
+        touch: '👆 Touch Mode', fist_touch: '💥 Tap 2x!'
     };
     gestureText.textContent = names[g] || g;
     gestureText.className = 'value' + (g === 'secret' ? ' secret' : '');
 }
 
-// ==================== MAIN APP ====================
-async function startApp() {
-    startBtn.style.display = 'none';
-    setProgress(55, 'Mengakses kamera...');
-    
+// ==================== CAMERA MODE ====================
+async function startCamera() {
+    setProgress(60, 'Mengakses kamera...');
     try {
-        // Check camera permission
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { facingMode: 'user', width: 640, height: 480 } 
         });
         stream.getTracks().forEach(t => t.stop());
         
-        setProgress(70, 'Inisialisasi Hand Tracking...');
+        setProgress(75, 'Load AI...');
         
-        // Init MediaPipe Hands
-        hands = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        // Try multiple CDN sources
+        const cdnSources = [
+            'https://cdn.jsdelivr.net/npm/@mediapipe',
+            'https://unpkg.com/@mediapipe',
+            'https://cdn.statically.io/gh/google/mediapipe/master'
+        ];
+        
+        let loaded = false;
+        for (const base of cdnSources) {
+            try {
+                await loadScript(`${base}/camera_utils/camera_utils.js`);
+                await loadScript(`${base}/control_utils/control_utils.js`);
+                await loadScript(`${base}/drawing_utils/drawing_utils.js`);
+                await loadScript(`${base}/hands/hands.js`);
+                loaded = true;
+                console.log('Loaded from:', base);
+                break;
+            } catch(e) {
+                console.log('Failed:', base, e.message);
+                continue;
+            }
+        }
+        
+        if (!loaded) throw new Error('Semua CDN gagal');
+        
+        setProgress(90, 'Init AI...');
+        
+        const hands = new Hands({
+            locateFile: (file) => {
+                // Try to find the file from loaded source
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
         });
         
         hands.setOptions({
             maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.6,
-            minTrackingConfidence: 0.6
+            modelComplexity: 0, // Lite mode for faster load
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
         });
         
-        hands.onResults(onResults);
+        hands.onResults(onHandResults);
         
-        setProgress(85, 'Menyalakan kamera...');
+        setProgress(100, 'Siap!');
         
-        // Init camera
-        camera = new Camera(video, {
-            onFrame: async () => {
-                if (hands) await hands.send({ image: video });
-            },
+        const camera = new Camera(video, {
+            onFrame: async () => { await hands.send({ image: video }); },
             width: 640,
             height: 480
         });
         
         await camera.start();
         
-        setProgress(100, 'Siap!');
-        setTimeout(() => {
-            loadingScreen.classList.add('hidden');
-            ui.style.display = 'block';
-            gestureBox.style.display = 'block';
-            fpsEl.style.display = 'block';
-            video.style.display = 'block';
-        }, 500);
+        mode = 'camera';
+        video.style.display = 'block';
+        modeInd.textContent = '📷 MODE KAMERA';
+        modeInd.style.display = 'block';
+        finishLoad();
         
     } catch (err) {
-        console.error(err);
-        loader.style.display = 'none';
-        loadingStatus.style.display = 'none';
-        loadingBar.parentElement.style.display = 'none';
-        errorBox.style.display = 'block';
-        
-        let msg = '❌ ';
-        if (err.name === 'NotAllowedError') {
-            msg += 'Kamera di-block! Buka pengaturan browser → izinkan kamera untuk site ini.';
-        } else if (err.name === 'NotFoundError') {
-            msg += 'Kamera tidak ditemukan. Pastikan HP punya kamera depan.';
-        } else {
-            msg += 'Error: ' + err.message;
-        }
-        errorBox.innerHTML = msg + '<br><br><button onclick="location.reload()" style="background:#00d4ff;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;">Coba Lagi</button>';
+        console.error('Camera error:', err);
+        showError('Kamera gagal: ' + err.message + '\n\nBeralih ke mode Touch...', true);
     }
 }
 
-function onResults(results) {
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.crossOrigin = 'anonymous';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('fail'));
+        document.head.appendChild(s);
+    });
+}
+
+function onHandResults(results) {
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         isHandDetected = true;
         const lm = results.multiHandLandmarks[0];
-        
-        // Smooth hand position (landmark 9 = middle finger mcp)
         const rawX = (1 - lm[9].x) * W;
         const rawY = lm[9].y * H;
         handPos.x += (rawX - handPos.x) * 0.25;
         handPos.y += (rawY - handPos.y) * 0.25;
         
         const newG = detectGesture(lm);
-        
         if (newG !== currentGesture) {
             currentGesture = newG;
             updateUI(newG);
-            
-            // Trigger effects
-            if (newG === 'peace') {
-                spawnHeart(handPos.x, handPos.y);
-            } else if (newG === 'secret') {
+            if (newG === 'peace') spawnHeart(handPos.x, handPos.y);
+            else if (newG === 'secret') {
                 secretActive = true;
                 secretTimer = 300;
                 spawnText('jexkk kerenn jirr', W/2, H/2);
@@ -607,22 +568,17 @@ function onResults(results) {
             }
         }
         
-        // Continuous spawn
-        const rates = { open: 0.3, point: 0.5, peace: 0.2, fist: 0.6, shaka: 0.4, loveyou: 0.4, rock: 0.5, secret: 0.8 };
+        const rates = { open: 0.3, point: 0.5, peace: 0.2, fist: 0.6, secret: 0.8 };
         if (Math.random() < (rates[currentGesture] || 0.2)) {
             const cfgs = {
-                open: { hue: 180 + Math.random()*60, speed: 1.5, spread: 40 },
+                open: { hue: 180+Math.random()*60, speed: 1.5, spread: 40 },
                 point: { hue: Date.now()*0.05%360, speed: 2, spread: 15, trail: 8 },
-                peace: { hue: 330 + Math.random()*30, speed: 1, spread: 25, decay: 0.004 },
+                peace: { hue: 330+Math.random()*30, speed: 1, spread: 25, decay: 0.004 },
                 fist: { hue: Math.random()*50, speed: 5, spread: 50, decay: 0.02, size: 3 },
-                shaka: { hue: 200 + Math.random()*40, speed: 3, spread: 40, trail: 10 },
-                loveyou: { hue: 45 + Math.random()*20, speed: 2.5, spread: 30, trail: 8 },
-                rock: { hue: Math.random()*360, speed: 4, spread: 45, decay: 0.01 },
-                secret: { hue: 280 + Math.random()*40, speed: 5, spread: 70, decay: 0.008, size: 2.5 }
+                secret: { hue: 280+Math.random()*40, speed: 5, spread: 70, decay: 0.008, size: 2.5 }
             };
             spawnParticles(handPos.x, handPos.y, 2, cfgs[currentGesture] || {});
         }
-        
     } else {
         isHandDetected = false;
         currentGesture = 'none';
@@ -630,34 +586,89 @@ function onResults(results) {
     }
 }
 
-// ==================== ANIMATION LOOP ====================
-let lastTime = performance.now();
-let frames = 0;
-
-function animate() {
-    const now = performance.now();
-    frames++;
-    if (now - lastTime >= 1000) {
-        fpsEl.textContent = frames + ' FPS';
-        frames = 0;
-        lastTime = now;
-    }
+// ==================== TOUCH MODE ====================
+function startTouchMode() {
+    mode = 'touch';
+    controlText.innerHTML = `👆 <b>Geser jari</b> → Partikel ngikut<br>
+    👆👆 <b>Tap 2x</b> → Ledakan!<br>
+    ✌️ <b>2 Jari</b> → Hati<br>
+    ☝️ <b>Kode</b> → <span class="secret">"jexkk kerenn jirr"</span>`;
     
-    // Clear
+    modeInd.textContent = '👆 MODE TOUCH';
+    modeInd.style.display = 'block';
+    modeInd.style.color = '#ff6b9d';
+    modeInd.style.borderColor = 'rgba(255,107,157,0.2)';
+    modeInd.style.background = 'rgba(255,107,157,0.1)';
+    
+    // Two finger detection
+    canvas.addEventListener('touchstart', e => {
+        if (e.touches.length === 2) {
+            touchGesture = 'peace';
+            spawnHeart(touchPos.x, touchPos.y);
+            updateUI('peace');
+        }
+    }, {passive: false});
+    
+    finishLoad();
+}
+
+// ==================== UI HELPERS ====================
+function finishLoad() {
+    setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        ui.style.display = 'block';
+        gestureBox.style.display = 'block';
+    }, 400);
+}
+
+function showError(msg, showFallback) {
+    loader.style.display = 'none';
+    loadingBar.parentElement.style.display = 'none';
+    loadingStatus.style.display = 'none';
+    errorBox.style.display = 'block';
+    
+    let html = msg.replace(/\n/g, '<br>');
+    if (showFallback) {
+        html += `<br><br><button class="fallback-btn" onclick="startTouchMode()">👆 Pakai Mode Touch</button>`;
+    }
+    errorBox.innerHTML = html;
+}
+
+// ==================== MAIN LOOP ====================
+function animate() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
     ctx.fillRect(0, 0, W, H);
     
-    // Secret timer
     if (secretActive) {
         secretTimer--;
-        if (secretTimer <= 0) {
-            secretActive = false;
-            textParticles = [];
+        if (secretTimer <= 0) { secretActive = false; textParticles = []; }
+    }
+    
+    // Determine active position
+    let activePos, activeGesture;
+    if (mode === 'camera' && isHandDetected) {
+        activePos = handPos;
+        activeGesture = currentGesture;
+    } else if (mode === 'touch' && isTouching) {
+        activePos = touchPos;
+        activeGesture = touchGesture;
+        // Spawn on touch
+        if (Math.random() < 0.4) {
+            const cfg = touchGesture === 'fist' 
+                ? { hue: Math.random()*50, speed: 6, spread: 40, decay: 0.015, size: 3 }
+                : { hue: 180+Math.random()*60, speed: 1.5, spread: 30, trail: 6 };
+            spawnParticles(touchPos.x, touchPos.y, 2, cfg);
         }
+    } else {
+        activePos = null;
+        activeGesture = 'none';
     }
     
     // Update particles
     particles = particles.filter(p => {
+        if (!p.isHeart && activePos) {
+            p.setTarget(activePos.x, activePos.y);
+        }
         p.update();
         p.draw(ctx);
         return p.life > 0;
@@ -666,15 +677,12 @@ function animate() {
     if (particles.length > 500) particles = particles.slice(-500);
     
     // Text particles
-    textParticles.forEach(tp => {
-        tp.update();
-        tp.draw(ctx);
-    });
+    textParticles.forEach(tp => { tp.update(); tp.draw(ctx); });
     
-    // Connection lines for open hand
-    if (currentGesture === 'open' && particles.length > 20) {
+    // Connection lines
+    if (activeGesture === 'open' && particles.length > 20) {
         ctx.beginPath();
-        ctx.strokeStyle = `hsla(${(now*0.02)%360}, 70%, 60%, 0.05)`;
+        ctx.strokeStyle = `hsla(${(Date.now()*0.02)%360}, 70%, 60%, 0.05)`;
         ctx.lineWidth = 0.6;
         const step = Math.max(1, Math.floor(particles.length / 120));
         for (let i = 0; i < particles.length; i += step) {
@@ -690,8 +698,8 @@ function animate() {
         ctx.stroke();
     }
     
-    // Ambient particles
-    if (!isHandDetected && Math.random() < 0.03) {
+    // Ambient
+    if (!activePos && Math.random() < 0.03) {
         spawnParticles(Math.random()*W, Math.random()*H, 1, { hue: Math.random()*360, speed: 0.3, spread: 0, decay: 0.002, size: 0.8 });
     }
     
@@ -699,24 +707,34 @@ function animate() {
 }
 
 // ==================== INIT ====================
-async function init() {
-    setProgress(10, 'Memuat AI Hand Tracking...');
+startBtn.addEventListener('click', startCamera);
+
+// Auto-detect if we can load scripts
+(async function init() {
+    setProgress(20, 'Cek koneksi...');
     
+    // Check if online
+    if (!navigator.onLine) {
+        showError('❌ Offline!\n\nNyalain internet dulu, atau pakai mode Touch.', true);
+        return;
+    }
+    
+    setProgress(40, 'Siap memuat AI...');
+    
+    // Test if we can reach CDN
     try {
-        await loadMediaPipe();
-        setProgress(55, 'Klik tombol di bawah untuk mulai');
+        await fetch('https://cdn.jsdelivr.net/npm/@mediapipe/hands/package.json', { mode: 'no-cors', cache: 'no-store' });
+        setProgress(55, 'Klik tombol untuk mulai');
         loader.style.display = 'none';
         startBtn.style.display = 'block';
-    } catch (err) {
+    } catch(e) {
+        setProgress(55, 'CDN lambat, tapi coba klik mulai...');
         loader.style.display = 'none';
-        loadingStatus.style.display = 'none';
-        loadingBar.parentElement.style.display = 'none';
-        errorBox.style.display = 'block';
-        errorBox.textContent = '❌ Gagal load AI. Cek koneksi internet atau coba refresh.';
+        startBtn.style.display = 'block';
+        startBtn.textContent = '🎮 Coba Mulai (CDN Lambat)';
     }
-}
+})();
 
-init();
 animate();
 </script>
 </body>
