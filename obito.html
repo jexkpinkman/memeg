@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obito 3D | Developer Portfolio</title>
+    <title>Obito | Jexk Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,13 +15,26 @@
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body data-page="obito">
+    <!-- Loading Screen -->
     <div class="loading-screen" id="loader">
         <div class="loader-content">
             <div class="loader-circle obito-loader"></div>
-            <div class="loader-text">Awakening Sharingan<span class="dots">...</span></div>
+            <div class="loader-text">Loading<span class="dots">...</span></div>
         </div>
     </div>
 
+    <!-- Video Background -->
+    <div class="video-bg-container">
+        <!-- GANTI VIDEO DI SINI -->
+        <video class="video-bg" id="videoBg" autoplay muted loop playsinline poster="">
+            <source src="assets/obito-video.mp4" type="video/mp4">
+            <!-- Backup: bisa juga pakai link langsung -->
+            <!-- <source src="https://your-cdn-link.com/video.mp4" type="video/mp4"> -->
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <!-- Navigation -->
     <nav class="navbar obito-nav" id="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
@@ -33,7 +46,7 @@
                 <li><a href="projects.html" class="nav-link">Projects</a></li>
                 <li><a href="skills.html" class="nav-link">Skills</a></li>
                 <li><a href="contact.html" class="nav-link">Contact</a></li>
-                <li><a href="obito.html" class="nav-link active obito-link">3D Obito</a></li>
+                <li><a href="obito.html" class="nav-link active obito-link">Obito</a></li>
             </ul>
             <div class="hamburger" id="hamburger">
                 <span class="bar"></span>
@@ -43,6 +56,7 @@
         </div>
     </nav>
 
+    <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
         <ul class="mobile-nav-list">
             <li><a href="index.html" class="mobile-nav-link">Home</a></li>
@@ -50,92 +64,129 @@
             <li><a href="projects.html" class="mobile-nav-link">Projects</a></li>
             <li><a href="skills.html" class="mobile-nav-link">Skills</a></li>
             <li><a href="contact.html" class="mobile-nav-link">Contact</a></li>
-            <li><a href="obito.html" class="mobile-nav-link active">3D Obito</a></li>
+            <li><a href="obito.html" class="mobile-nav-link active">Obito</a></li>
         </ul>
     </div>
 
+    <!-- Hero Section -->
     <section class="obito-hero">
-        <canvas id="obitoCanvas" class="obito-canvas"></canvas>
-        <div class="obito-overlay"></div>
-
         <div class="obito-content">
             <div class="obito-badge">
                 <span class="sharingan-icon"></span>
-                Kamui Dimension
+                Uchiha Legacy
             </div>
             <h1 class="obito-title">
-                <span class="obito-line">Uchiha</span>
-                <span class="obito-name">Obito</span>
+                <span class="obito-line">Welcome to</span>
+                <span class="obito-name">My World</span>
             </h1>
-            <p class="obito-quote">
-                "Those who break the rules are scum, but those who abandon their friends are worse than scum."
+            <p class="obito-description">
+                A developer who walks the path of shadows. Crafting digital experiences 
+                with the precision of a shinobi and the vision of a dreamer.
             </p>
             <div class="obito-stats">
-                <div class="obito-stat">
-                    <span class="obito-stat-value">Mangekyo</span>
-                    <span class="obito-stat-label">Sharingan</span>
+                <div class="obito-stat glass-dark">
+                    <span class="obito-stat-value">50+</span>
+                    <span class="obito-stat-label">Projects</span>
                 </div>
-                <div class="obito-stat">
-                    <span class="obito-stat-value">Kamui</span>
-                    <span class="obito-stat-label">Ability</span>
+                <div class="obito-stat glass-dark">
+                    <span class="obito-stat-value">4</span>
+                    <span class="obito-stat-label">Years Exp</span>
                 </div>
-                <div class="obito-stat">
-                    <span class="obito-stat-value">Space-Time</span>
-                    <span class="obito-stat-label">Ninjutsu</span>
+                <div class="obito-stat glass-dark">
+                    <span class="obito-stat-value">Full</span>
+                    <span class="obito-stat-label">Stack</span>
                 </div>
             </div>
             <div class="obito-buttons">
-                <a href="index.html" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Back to Portfolio</span>
+                <a href="projects.html" class="btn btn-obito-primary">
+                    <span>View Projects</span>
+                    <i class="fas fa-arrow-right"></i>
                 </a>
-                <button class="btn btn-obito" id="toggleEffect">
-                    <i class="fas fa-eye"></i>
-                    <span>Toggle Kamui</span>
-                </button>
+                <a href="contact.html" class="btn btn-obito-outline">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Contact Me</span>
+                </a>
             </div>
         </div>
 
-        <div class="obito-controls">
-            <div class="control-item">
-                <i class="fas fa-mouse"></i>
-                <span>Move mouse to rotate view</span>
+        <div class="scroll-indicator obito-scroll">
+            <div class="mouse">
+                <div class="wheel"></div>
             </div>
-            <div class="control-item">
-                <i class="fas fa-hand-pointer"></i>
-                <span>Click toggle for Kamui effect</span>
-            </div>
+            <span>Scroll to explore</span>
         </div>
     </section>
 
-    <section class="obito-info">
+    <!-- Features Section -->
+    <section class="obito-features">
         <div class="container">
+            <div class="section-header">
+                <span class="section-tag obito-tag">Capabilities</span>
+                <h2 class="section-title obito-section-title">My Arsenal</h2>
+            </div>
             <div class="obito-grid">
-                <div class="obito-card glass">
+                <div class="obito-card glass-obito">
                     <div class="obito-card-icon">
-                        <i class="fas fa-eye"></i>
+                        <i class="fas fa-code"></i>
                     </div>
-                    <h3>Sharingan</h3>
-                    <p>The legendary dojutsu of the Uchiha clan. Obito awakened his Mangekyo Sharingan after witnessing Rin's death, granting him the ability to use Kamui.</p>
+                    <h3>Frontend</h3>
+                    <p>React, Next.js, Vue, TypeScript. Building responsive, interactive UIs with modern frameworks.</p>
+                    <div class="obito-card-tags">
+                        <span>React</span><span>Next.js</span><span>Tailwind</span>
+                    </div>
                 </div>
-                <div class="obito-card glass">
+                <div class="obito-card glass-obito">
                     <div class="obito-card-icon">
-                        <i class="fas fa-wind"></i>
+                        <i class="fas fa-server"></i>
                     </div>
-                    <h3>Kamui</h3>
-                    <p>A powerful space-time ninjutsu that allows the user to transfer objects to and from another dimension. Obito's signature technique.</p>
+                    <h3>Backend</h3>
+                    <p>Node.js, Python, Go. Scalable APIs, microservices, and database architecture.</p>
+                    <div class="obito-card-tags">
+                        <span>Node.js</span><span>PostgreSQL</span><span>Redis</span>
+                    </div>
                 </div>
-                <div class="obito-card glass">
+                <div class="obito-card glass-obito">
                     <div class="obito-card-icon">
-                        <i class="fas fa-mask"></i>
+                        <i class="fas fa-paint-brush"></i>
                     </div>
-                    <h3>Tobi</h3>
-                    <p>After the traumatic incident, Obito adopted the persona of Tobi, wearing a spiral-patterned mask that became his iconic symbol.</p>
+                    <h3>Design</h3>
+                    <p>Figma, motion design, 3D web experiences. Creating visually stunning interfaces.</p>
+                    <div class="obito-card-tags">
+                        <span>Figma</span><span>Three.js</span><span>GSAP</span>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Quote Section -->
+    <section class="obito-quote-section">
+        <div class="container">
+            <div class="quote-card glass-obito">
+                <i class="fas fa-quote-left quote-icon"></i>
+                <p class="quote-text">
+                    "Those who break the rules are scum, but those who abandon their friends are worse than scum."
+                </p>
+                <span class="quote-author">— Obito Uchiha</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="obito-cta">
+        <div class="container">
+            <div class="cta-wrapper glass-obito">
+                <h2>Let's Create Something Epic</h2>
+                <p>Have a project in mind? Let's build it together.</p>
+                <a href="contact.html" class="btn btn-obito-primary">
+                    <span>Start a Project</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer class="footer obito-footer">
         <div class="container">
             <div class="footer-content">
@@ -153,7 +204,7 @@
                         <li><a href="projects.html">Projects</a></li>
                         <li><a href="skills.html">Skills</a></li>
                         <li><a href="contact.html">Contact</a></li>
-                        <li><a href="obito.html">3D Obito</a></li>
+                        <li><a href="obito.html">Obito</a></li>
                     </ul>
                 </div>
                 <div class="footer-social">
@@ -167,7 +218,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p> 2024 Alex Developer. All rights reserved.</p>
+                <p> 2026 Jexk Not Dev. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -176,9 +227,6 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <!-- Three.js MUST load before obito.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="obito.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
