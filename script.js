@@ -236,5 +236,5 @@ document.querySelectorAll('.glass-card').forEach(card => {
     });
 });
 
-console.log('%c Jexk Not Dev ', 'background: #b8956a; color: #0c0c0e; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 6px;');
+console.log('%c Jexk Not Dev ', 'background: #6b8cae; color: #0c0c0e; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 6px;');
 console.log('%c Developer Portfolio ', 'color: #8b9dc3; font-size: 12px;');
